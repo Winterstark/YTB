@@ -1,0 +1,88 @@
+body {
+    width: 300px;
+    height: 300px;
+    background-color: #272822;
+    color: white;
+    font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
+    font-size: 100%;
+}
+
+button.addContentButton {
+  width: 200px;
+  height: 25px;
+  margin: 20px 0px 15px 50px;
+}
+
+img {
+	width: 48px;
+	height: 48px;
+  padding-right: 10px;
+  float: left;
+}
+
+button {
+  background: #6099bd;
+  background-image: -webkit-linear-gradient(top, #6099bd, #2980b9);
+  background-image: -moz-linear-gradient(top, #6099bd, #2980b9);
+  background-image: -ms-linear-gradient(top, #6099bd, #2980b9);
+  background-image: -o-linear-gradient(top, #6099bd, #2980b9);
+  background-image: linear-gradient(to bottom, #6099bd, #2980b9);
+  -webkit-border-radius: 2;
+  -moz-border-radius: 2;
+  border-radius: 2px;
+  text-shadow: 1px 1px 3px #666666;
+  font-family: Arial;
+  color: #ffffff;
+  font-size: 13px;ed 
+  padding: 3px 10px 3px 10px;
+  margin-right: 5px;
+  text-decoration: none;
+}
+
+button:hover {
+  background: #3cb0fd;
+  background-image: -webkit-linear-gradient(top, #3cb0fd, #3498db);
+  background-image: -moz-linear-gradient(top, #3cb0fd, #3498db);
+  background-image: -ms-linear-gradient(top, #3cb0fd, #3498db);
+  background-image: -o-linear-gradient(top, #3cb0fd, #3498db);
+  background-image: linear-gradient(to bottom, #3cb0fd, #3498db);
+  text-decoration: none;
+}
+
+button.del {
+  background: #cc1928;
+  background-image: -webkit-linear-gradient(top, #cc1928, #520b12);
+  background-image: -moz-linear-gradient(top, #cc1928, #520b12);
+  background-image: -ms-linear-gradient(top, #cc1928, #520b12);
+  background-image: -o-linear-gradient(top, #cc1928, #520b12);
+  background-image: linear-gradient(to bottom, #cc1928, #520b12);
+}
+
+button.del:hover {
+  background: #d9293a;
+  background-image: -webkit-linear-gradient(top, #d9293a, #7a262e);
+  background-image: -moz-linear-gradient(top, #d9293a, #7a262e);
+  background-image: -ms-linear-gradient(top, #d9293a, #7a262e);
+  background-image: -o-linear-gradient(top, #d9293a, #7a262e);
+  background-image: linear-gradient(to bottom, #d9293a, #7a262e);
+  text-decoration: none;
+}
+
+button.edit {
+  background: #e6a54a;
+  background-image: -webkit-linear-gradient(top, #e6a54a, #bd7715);
+  background-image: -moz-linear-gradient(top, #e6a54a, #bd7715);
+  background-image: -ms-linear-gradient(top, #e6a54a, #bd7715);
+  background-image: -o-linear-gradient(top, #e6a54a, #bd7715);
+  background-image: linear-gradient(to bottom, #e6a54a, #bd7715);
+}
+
+button.edit:hover {
+  background: #edb463;
+  background-image: -webkit-linear-gradient(top, #edb463, #c7862c);
+  background-image: -moz-linear-gradient(top, #edb463, #c7862c);
+  background-image: -ms-linear-gradient(top, #edb463, #c7862c);
+  background-image: -o-linear-gradient(top, #edb463, #c7862c);
+  background-image: linear-gradient(to bottom, #edb463, #c7862c);
+  text-decoration: none;
+}

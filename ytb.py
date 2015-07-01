@@ -6,7 +6,7 @@ from os import path
 
 def getChannelId(username):
 	url = "https://www.googleapis.com/youtube/v3/channels?part=id&forUsername=" + quote(username) + "&key=AIzaSyDWnRZXQYSN5V-dz0sXe-iZ0dwLQTXJ_Uk"
-
+    
 	inp = request.urlopen(url).read()
 	resp = json.loads(inp.decode("utf-8"))
 	
@@ -61,6 +61,7 @@ def downloadChannelList(channel, lastWatched):
 		pageToken = ""
 
 		while pageToken != "no more results":
+			print("URL: " + url.format(publishedBefore, pageToken))
 			inp = request.urlopen(url.format(publishedBefore, pageToken)).read()
 			resp = json.loads(inp.decode("utf-8"))
 
@@ -129,7 +130,7 @@ def downloadPlaylist(playlistId, lastWatched):
 
 
 #MAIN
-ROOT_DIR = ""
+ROOT_DIR = "C:\\dev\\scripts\\ytb\\"
 
 if len(sys.argv) < 2:
 	print("Missing argument: channel name.")
