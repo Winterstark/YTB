@@ -4,7 +4,9 @@ var API_KEY_SUFFIX = "&key=AIzaSyDWnRZXQYSN5V-dz0sXe-iZ0dwLQTXJ_Uk";
 var PageTypeEnum = Object.freeze({
 	Channel: 0,
 	User: 1,
-	Video: 2
+	Playlist: 2,
+	Video: 3,
+	None: 4
 });
 
 var url; //current tab url
@@ -50,12 +52,22 @@ function processYouTubeUrl(url) {
 			ub = url.length;
 		id = url.substring(lb, ub);
 	}
+	else if (url.includes("list="))
+	{
+		pageType = PageTypeEnum.Playlist;
+		id = url.substring(url.indexOf("list=") + 5, url.length);
+	}
 	else if (url.includes("/watch?v="))
 	{
 		pageType = PageTypeEnum.Video;
 
 		var lb = url.indexOf("/watch?v=") + 9;
 		id = url.substring(lb, lb + 11);
+	}
+	else
+	{
+		pageType = PageTypeEnum.None;
+		id = -1;
 	}
 
 	return [pageType, id];
@@ -91,32 +103,24 @@ function getChannelIdFromVideo(videoId, callback) {
 
 //save video archive from a YouTube channel name
 function addChannel() {
-	if (url.includes("youtube.com/channel/"))
-	{
-		var lb = url.indexOf("youtube.com/channel/") + 20;
-		var ub = url.indexOf('/', lb);
-		if (ub == -1)
-			ub = url.length;
-		var channelId = url.substring(lb, ub);
+	var type_id = processYouTubeUrl(url);
+	var type = type_id[0];
+	var id = type_id[1];
 
-		GETRequest("channels?part=snippet&id=" + channelId, function(response) { //get channel thumbnail first
-			thumbnailUrl = response.items[0].snippet.thumbnails.default.url;
-			addChannelFromId(channelId, "", false);
-		});
-	}
-	else if (url.includes("youtube.com/user/"))
+	switch (type)
 	{
-		var lb = url.indexOf("youtube.com/user/") + 17;
-		var ub = url.indexOf('/', lb);
-		if (ub == -1)
-			ub = url.length;
-
-		getChannelId(url.substring(lb, ub), addChannelFromId);
-	}
-	else if (url.includes("/watch?v="))
-	{
-		var lb = url.indexOf("/watch?v=") + 9;
-		getChannelIdFromVideo(url.substring(lb, lb+11), addChannelFromId);
+		case PageTypeEnum.Channel:
+			GETRequest("channels?part=snippet&id=" + id, function(response) { //get channel thumbnail first
+				thumbnailUrl = response.items[0].snippet.thumbnails.default.url;
+				addChannelFromId(id, "", false);
+			});
+			break;
+		case PageTypeEnum.User:
+			getChannelId(id, addChannelFromId);
+			break;
+		case PageTypeEnum.Video:
+			getChannelIdFromVideo(id, addChannelFromId);
+			break;
 	}
 }
 
@@ -224,7 +228,7 @@ function channelListCompleted(channelTitle) {
 			lists[searchId].lastWatched = videoId;
 	}
 
-	chrome.storage.sync.set({"lists": lists});
+	chrome.storage.local.set({"lists": lists});
 	buildUI();
 }
 
@@ -323,7 +327,7 @@ function playlistCompleted(response) {
 		}
 	}
 
-	chrome.storage.sync.set({"lists": lists});
+	chrome.storage.local.set({"lists": lists});
 	buildUI();
 }
 
@@ -349,7 +353,7 @@ function openNextVideo() {
 		chrome.tabs.create({url: "https://www.youtube.com/watch?v=" + videoId});
 
 		lists[this.id].lastWatched = videoId;
-		chrome.storage.sync.set({"lists": lists});
+		chrome.storage.local.set({"lists": lists});
 	}
 }
 
@@ -360,7 +364,7 @@ function delList() {
 	if (confirm("Are you sure you want to permanently delete " + lists[id].name + "?"))
 	{
 		delete lists[id];
-		chrome.storage.sync.set({"lists": lists});
+		chrome.storage.local.set({"lists": lists});
 		buildUI();
 	}
 }
@@ -387,7 +391,7 @@ function editList() {
 				lastDeleted = lists[id].videoList.pop();
 
 		    lists[id].lastWatched = newLastWatched;
-			chrome.storage.sync.set({"lists": lists});
+			chrome.storage.local.set({"lists": lists});
 			buildUI();
 		}
 	}
@@ -395,6 +399,7 @@ function editList() {
 
 //setup UI stuff
 function buildUI() {
+	//existing content
 	document.getElementById("lists").innerHTML = "";
 
 	for (var item in lists)
@@ -414,40 +419,73 @@ function buildUI() {
 		document.getElementById("del_" + item).onclick = delList;
 		document.getElementById("edit_" + item).onclick = editList;
 	}
+
+	//show add button for new content
+	var type_id = processYouTubeUrl(url);
+	var type = type_id[0];
+	var id = type_id[1];
+
+	switch (type)
+	{
+		case PageTypeEnum.Channel:
+			if (!lists.hasOwnProperty(id))
+				showAddContentButton(true);
+			break;
+		case PageTypeEnum.User:
+			var alreadyAdded = false;
+			for (var item in lists)
+				if (lists[item].name == id)
+				{
+					alreadyAdded = true;
+					break;
+				}
+			
+			if (!alreadyAdded)
+				showAddContentButton(true);
+			break;
+		case PageTypeEnum.Playlist:
+			if (!lists.hasOwnProperty(id))
+				showAddContentButton(false);
+			break;
+		case PageTypeEnum.Video:
+			var alreadyAdded = false;
+			for (var item in lists)
+				if (lists[item].lastWatched == id || lists[item].videoList.indexOf(id) != -1)
+				{
+					alreadyAdded = true;
+					break;
+				}
+
+			if (!alreadyAdded)
+				showAddContentButton(true);
+			break;
+	}
 }
 
+//show add content button
+function showAddContentButton(channel) {
+	if (channel)
+	{
+		document.getElementById("addContent").innerHTML = "<button class=\"addContentButton\" id=\"addChannelButton\" type=\"button\">Add channel</button>";
+		document.getElementById("addChannelButton").onclick = addChannel;
+	}
+	else
+	{
+		document.getElementById("addContent").innerHTML = "<button class=\"addContentButton\" id=\"addPlaylistButton\" type=\"button\">Add playlist</button>";
+		document.getElementById("addPlaylistButton").onclick = addPlaylist;	
+	}
+}
 
 //MAIN
 document.addEventListener('DOMContentLoaded', function() {
 	getCurrentTabUrl(function() {
-		chrome.storage.sync.get("lists", function(items) {
+		chrome.storage.local.get("lists", function(items) {
 			if (items.hasOwnProperty("lists"))
 				lists = items.lists;
 			else
 				lists = {};
-
+			
 			buildUI();
 		});
-
-		if (url.includes("youtube.com"))
-		{
-			if (url.includes("youtube.com/channel/") || url.includes("youtube.com/user/") || url.includes("/watch?v="))
-			{
-				//don't show Add button if channel is already added
-				var type_id = processYouTubeUrl(url);
-				var type = type_id[0];
-				var id = type_id[1];
-				if (type != PageTypeEnum.Channel || !lists.hasOwnProperty(id))
-				{
-					document.getElementById("addContent").innerHTML = "<button class=\"addContentButton\" id=\"addChannelButton\" type=\"button\">Add channel</button>";
-					document.getElementById("addChannelButton").onclick = addChannel;
-				}
-			}
-			else if (url.includes("list="))
-			{
-				document.getElementById("addContent").innerHTML = "<button class=\"addContentButton\" id=\"addPlaylistButton\" type=\"button\">Add playlist</button>";
-				document.getElementById("addPlaylistButton").onclick = addPlaylist;	
-			}
-		}
 	});
 });
